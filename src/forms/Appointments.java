@@ -14,44 +14,50 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.text.MaskFormatter;
 import net.proteanit.sql.DbUtils;
 
 /**
  *
  * @author m.amin
  */
-public class Tickets extends javax.swing.JFrame {
+public class Appointments extends javax.swing.JFrame {
 
-    int GENDERID = 0;
-    int MARTIALID = 0;
-    int NATIONALITYID = 0;
-    int SPECIALISTID = 0;
+private static final SimpleDateFormat sdfdate = new SimpleDateFormat("dd/MM/yyyy");
+private static final SimpleDateFormat sdftime = new SimpleDateFormat("HH:mm");
+Date date = new Date();
     int PatientID = 0;
+    int clinicID = 0;
+    int doctorID = 0;
+    int AppointmentID = 0;
     DefaultComboBoxModel Patientdata = new DefaultComboBoxModel();
     DefaultComboBoxModel Patientiddata = new DefaultComboBoxModel();
     DefaultComboBoxModel doctordata = new DefaultComboBoxModel();
     DefaultComboBoxModel doctoriddata = new DefaultComboBoxModel();
     DefaultComboBoxModel clinicdata = new DefaultComboBoxModel();
     DefaultComboBoxModel cliniciddata = new DefaultComboBoxModel();
-    String Query = "SELECT TICKETS.id as [رقم الحجز], TICKETS.pati_id, PATIENTS.Patient_NAME as [المريض],\n"
-            + "TICKETS.clinc_id,EMPLOYEES.EMP_NAME as [الطبيب], CLINIC.CLINIC_NAME as [العيادة],\n"
-            + "TICKETS.tk_date as [التاريخ],TICKETS.tk_time as [الساعة],doctor_id FROM TICKETS\n"
-            + "INNER JOIN PATIENTS ON TICKETS.pati_id = PATIENTS.ID \n"
-            + "INNER JOIN CLINIC ON TICKETS.clinc_id = CLINIC.ID\n"
-            + "INNER JOIN EMPLOYEES ON TICKETS.doctor_id = EMPLOYEES.ID \n"
-            + "where TICKETS.i=0";
+    String Query = "SELECT Appointments.id as [رقم الحجز], Appointments.pati_id, PATIENTS.Patient_NAME as [المريض],\n"
+            + "Appointments.clinc_id,EMPLOYEES.EMP_NAME as [الطبيب], CLINIC.CLINIC_NAME as [العيادة],\n"
+            + "Appointments.ap_date as [التاريخ],Appointments.ap_time as [الساعة],doctor_id FROM Appointments\n"
+            + "INNER JOIN PATIENTS ON Appointments.pati_id = PATIENTS.ID \n"
+            + "INNER JOIN CLINIC ON Appointments.clinc_id = CLINIC.ID\n"
+            + "INNER JOIN EMPLOYEES ON Appointments.doctor_id = EMPLOYEES.ID \n"
+            + "where Appointments.i=0 and PATIENTS.i=0 and CLINIC.i=0 and EMPLOYEES.i=0";
 
     /**
      * Creates new form Employees
      */
-    private static Tickets obj = null;
+    private static Appointments obj = null;
 
-    private Tickets() {
+    private Appointments() {
         initComponents();
         this.setTitle("حجز المواعيد");
         this.setLocationRelativeTo(null);
@@ -69,19 +75,21 @@ public class Tickets extends javax.swing.JFrame {
         this.txttime.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         this.jTable1.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         this.txtsearch.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-        FillTicketData();
+        FillAppointmentsData();
         fillpatientcombobox();
         filldoctorcombobox();
         fillcliniccombobox();
         btnedite.setEnabled(false);
         btndelete.setEnabled(false);
         cmbclinic.setSelectedIndex(-1);
+        this.txtdate.setText(sdfdate.format(date));
+        this.txttime.setText(sdftime.format(date));
 
     }
 
-    public static Tickets getObj() {
+    public static Appointments getObj() {
         if (obj == null) {
-            obj = new Tickets();
+            obj = new Appointments();
         }
         return obj;
     }
@@ -117,6 +125,9 @@ public class Tickets extends javax.swing.JFrame {
         cmbpatientid = new javax.swing.JComboBox<>();
         cmbclinicid = new javax.swing.JComboBox<>();
         cmbdoctorid = new javax.swing.JComboBox<>();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        jFormattedTextField1 = new javax.swing.JFormattedTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
@@ -253,60 +264,101 @@ public class Tickets extends javax.swing.JFrame {
             }
         });
 
+        cmbpatientid.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmbpatientidActionPerformed(evt);
+            }
+        });
+
+        cmbclinicid.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmbclinicidActionPerformed(evt);
+            }
+        });
+
+        cmbdoctorid.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmbdoctoridActionPerformed(evt);
+            }
+        });
+
+        jLabel7.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
+        jLabel7.setForeground(new java.awt.Color(255, 0, 51));
+        jLabel7.setText("hh:mm");
+
+        jLabel10.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
+        jLabel10.setForeground(new java.awt.Color(255, 0, 51));
+        jLabel10.setText("yyyy/mm/dd");
+
+        jFormattedTextField1.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.DateFormatter(new java.text.SimpleDateFormat("h:mm"))));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(28, 28, 28)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(txtsearch, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(225, 225, 225)
-                                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(btndelete)
-                                .addGap(27, 27, 27)
-                                .addComponent(btnSave)
-                                .addGap(18, 18, 18)
-                                .addComponent(btnedite)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btnnew)
-                                .addGap(59, 59, 59)))
-                        .addGap(15, 15, 15))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(layout.createSequentialGroup()
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(28, 28, 28)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(jLabel3)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(cmbdoctor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(btndelete)
+                                        .addGap(27, 27, 27)
+                                        .addComponent(btnSave)
                                         .addGap(18, 18, 18)
-                                        .addComponent(cmbclinic, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(btnedite)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(btnnew)
+                                        .addGap(59, 59, 59))
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(155, 155, 155)
-                                        .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addGap(18, 18, 18))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(cmbdoctorid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(51, 51, 51)
-                                .addComponent(cmbclinicid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(31, 31, 31)
-                                .addComponent(cmbpatientid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(90, 90, 90)
-                                .addComponent(txttime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel4)
-                            .addComponent(txtdate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(cmbpatient, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 775, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                            .addComponent(txtsearch, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(cmbclinicid, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGap(18, 18, 18)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(layout.createSequentialGroup()
+                                                .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(225, 225, 225)
+                                                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                            .addComponent(cmbpatientid, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addGap(15, 15, 15))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                            .addGroup(layout.createSequentialGroup()
+                                                .addComponent(jLabel7)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                .addComponent(jLabel3))
+                                            .addGroup(layout.createSequentialGroup()
+                                                .addComponent(cmbdoctor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(cmbclinic, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                            .addGroup(layout.createSequentialGroup()
+                                                .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(155, 155, 155)
+                                                .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                        .addGap(18, 18, 18))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(60, 60, 60)
+                                        .addComponent(cmbdoctorid, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(txttime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(txtdate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(cmbpatient, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel10)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 775, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(77, 77, 77)
+                        .addComponent(jFormattedTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(26, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -325,7 +377,9 @@ public class Tickets extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel7)
+                    .addComponent(jLabel10))
                 .addGap(2, 2, 2)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtdate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -333,7 +387,9 @@ public class Tickets extends javax.swing.JFrame {
                     .addComponent(cmbpatientid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(cmbclinicid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(cmbdoctorid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(61, 61, 61)
+                .addGap(40, 40, 40)
+                .addComponent(jFormattedTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(2, 2, 2)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btndelete, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -356,16 +412,13 @@ public class Tickets extends javax.swing.JFrame {
     private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
         // TODO add your handling code here:
         int row = jTable1.getSelectedRow();
-        PatientID = Integer.parseInt(jTable1.getModel().getValueAt(row, 0).toString());
+        AppointmentID = Integer.parseInt(jTable1.getModel().getValueAt(row, 0).toString());
+        this.cmbpatient.setSelectedIndex(Integer.parseInt(jTable1.getModel().getValueAt(row, 1).toString()) - 1);
+        this.cmbclinic.setSelectedIndex(Integer.parseInt(jTable1.getModel().getValueAt(row, 3).toString()) - 1);
+        this.cmbdoctor.setSelectedIndex(Integer.parseInt(jTable1.getModel().getValueAt(row, 8).toString()) - 1);
+        this.txtdate.setText(jTable1.getModel().getValueAt(row, 6).toString());
+        this.txttime.setText(jTable1.getModel().getValueAt(row, 7).toString());
 
-        this.txtdate.setText(jTable1.getModel().getValueAt(row, 3).toString());
-        this.txttime.setText(jTable1.getModel().getValueAt(row, 4).toString());
-        this.cmbclinic.setSelectedIndex(Integer.parseInt(jTable1.getModel().getValueAt(row, 11).toString()) - 1);
-        this.cmbdoctor.setSelectedIndex(Integer.parseInt(jTable1.getModel().getValueAt(row, 12).toString()) - 1);
-
-//        jTextField1.setText(val);
-//        data2.setSelectedItem(jobid);
-//        Specialtiesid = (int) jTable1.getModel().getValueAt(row, 0);
         btnSave.setEnabled(false);
         btnedite.setEnabled(true);
         btndelete.setEnabled(true);
@@ -384,12 +437,20 @@ public class Tickets extends javax.swing.JFrame {
 
     private void cmbclinicActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbclinicActionPerformed
         // TODO add your handling code here:
-        NATIONALITYID = cmbclinic.getSelectedIndex() + 1;
+        clinicID = cmbclinic.getSelectedIndex() + 1;
+        int index = cmbclinic.getSelectedIndex();
+        if (index != -1) {
+            cmbclinicid.setSelectedIndex(index);
+        }
     }//GEN-LAST:event_cmbclinicActionPerformed
 
     private void cmbdoctorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbdoctorActionPerformed
         // TODO add your handling code here:
-        GENDERID = cmbdoctor.getSelectedIndex() + 1;
+        doctorID = cmbdoctor.getSelectedIndex() + 1;
+        int index = cmbdoctor.getSelectedIndex();
+        if (index != -1) {
+            cmbdoctorid.setSelectedIndex(index);
+        }
     }//GEN-LAST:event_cmbdoctorActionPerformed
 
     private void btnediteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnediteActionPerformed
@@ -407,31 +468,56 @@ public class Tickets extends javax.swing.JFrame {
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
         // TODO add your handling code here:
         obj = null;
-        Tickets.getObj().dispose();
+        Appointments.getObj().dispose();
     }//GEN-LAST:event_formWindowClosed
 
     private void txtsearchKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtsearchKeyTyped
         // TODO add your handling code here:
-        
-            String Query2 = "SELECT TICKETS.id as [رقم الحجز], TICKETS.pati_id, PATIENTS.Patient_NAME as [المريض],\n"
-            + "TICKETS.clinc_id,EMPLOYEES.EMP_NAME as [الطبيب], CLINIC.CLINIC_NAME as [العيادة],\n"
-            + "TICKETS.tk_date as [التاريخ],TICKETS.tk_time as [الساعة],doctor_id  FROM TICKETS\n"
-            + "INNER JOIN PATIENTS ON TICKETS.pati_id = PATIENTS.ID \n"
-            + "INNER JOIN CLINIC ON TICKETS.clinc_id = CLINIC.ID\n"
-            + "INNER JOIN EMPLOYEES ON TICKETS.doctor_id = EMPLOYEES.ID \n"
-            + "where PATIENTS.Patient_NAME like '" + this.txtsearch.getText() + "' + '%' and TICKETS.i=0";
+
+        String Query2 = "SELECT Appointments.id as [رقم الحجز], Appointments.pati_id, PATIENTS.Patient_NAME as [المريض],\n"
+                + "Appointments.clinc_id,EMPLOYEES.EMP_NAME as [الطبيب], Appointments.CLINIC_NAME as [العيادة],\n"
+                + "Appointments.ap_date as [التاريخ],Appointments.ap_time as [الساعة],doctor_id  FROM Appointments\n"
+                + "INNER JOIN PATIENTS ON Appointments.pati_id = PATIENTS.ID \n"
+                + "INNER JOIN CLINIC ON Appointments.clinc_id = CLINIC.ID\n"
+                + "INNER JOIN EMPLOYEES ON Appointments.doctor_id = EMPLOYEES.ID \n"
+                + "where PATIENTS.Patient_NAME like '" + this.txtsearch.getText() + "' + '%' and Appointments.i=0 and PATIENTS.i=0 and CLINIC.i=0 and EMPLOYEES.i=0";
 
         SearchByName(Query2);
     }//GEN-LAST:event_txtsearchKeyTyped
 
     private void cmbpatientActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbpatientActionPerformed
         // TODO add your handling code here:
+        PatientID = cmbpatient.getSelectedIndex() + 1;
         int index = cmbpatient.getSelectedIndex();
         if (index != -1) {
             cmbpatientid.setSelectedIndex(index);
         }
 
     }//GEN-LAST:event_cmbpatientActionPerformed
+
+    private void cmbpatientidActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbpatientidActionPerformed
+        // TODO add your handling code here:
+        int index = cmbpatientid.getSelectedIndex();
+        if (index != -1) {
+            cmbpatient.setSelectedIndex(index);
+        }
+    }//GEN-LAST:event_cmbpatientidActionPerformed
+
+    private void cmbclinicidActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbclinicidActionPerformed
+        // TODO add your handling code here:
+        int index = cmbclinicid.getSelectedIndex();
+        if (index != -1) {
+            cmbclinic.setSelectedIndex(index);
+        }
+    }//GEN-LAST:event_cmbclinicidActionPerformed
+
+    private void cmbdoctoridActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbdoctoridActionPerformed
+        // TODO add your handling code here:
+        int index = cmbdoctorid.getSelectedIndex();
+        if (index != -1) {
+            cmbdoctor.setSelectedIndex(index);
+        }
+    }//GEN-LAST:event_cmbdoctoridActionPerformed
 
     /**
      * @param args the command line arguments
@@ -450,14 +536,18 @@ public class Tickets extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Tickets.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Appointments.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Tickets.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Appointments.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Tickets.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Appointments.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Tickets.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Appointments.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
         //</editor-fold>
         //</editor-fold>
@@ -466,7 +556,7 @@ public class Tickets extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Tickets().setVisible(true);
+                new Appointments().setVisible(true);
             }
         });
     }
@@ -480,10 +570,10 @@ public class Tickets extends javax.swing.JFrame {
         btndelete.setEnabled(false);
         this.cmbdoctor.setSelectedIndex(-1);
         this.cmbclinic.setSelectedIndex(-1);
-        FillTicketData();
+        FillAppointmentsData();
     }
 
-    private void FillTicketData() {
+    private void FillAppointmentsData() {
         jTable1.setModel(DbUtils.resultSetToTableModel(Data.Get_Data(Query)));
         DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
         rightRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -491,10 +581,9 @@ public class Tickets extends javax.swing.JFrame {
             jTable1.getColumnModel().getColumn(i).setCellRenderer(rightRenderer);
         }
         ((DefaultTableCellRenderer) jTable1.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.RIGHT);
-        jTable1.removeColumn(jTable1.getColumnModel().getColumn(1));
-        jTable1.removeColumn(jTable1.getColumnModel().getColumn(2));
-        jTable1.removeColumn(jTable1.getColumnModel().getColumn(6));
-
+//        jTable1.removeColumn(jTable1.getColumnModel().getColumn(1));
+//        jTable1.removeColumn(jTable1.getColumnModel().getColumn(2));
+//        jTable1.removeColumn(jTable1.getColumnModel().getColumn(6));
 
     }
 
@@ -564,25 +653,39 @@ public class Tickets extends javax.swing.JFrame {
     }
 
     private boolean checkinput() {
-        if (txttime.getText().trim().equals("")) {
-            JOptionPane.showMessageDialog(this, "ادخل تاريخ فتح الملف", "خطأ", JOptionPane.ERROR_MESSAGE);
-            txttime.requestFocus();
-            return false;
-        } else if (txtdate.getText().trim().equals("")) {
-            JOptionPane.showMessageDialog(this, "ادخل تاريخ الميلاد", "خطأ", JOptionPane.ERROR_MESSAGE);
-            txtdate.requestFocus();
+        if (cmbpatient.getSelectedIndex() == -1) {
+            JOptionPane.showMessageDialog(this, "اختر المريض", "خطأ", JOptionPane.ERROR_MESSAGE);
+            cmbpatient.requestFocus();
             return false;
         } else if (cmbclinic.getSelectedIndex() == -1) {
-            JOptionPane.showMessageDialog(this, "اختر الجنسية", "خطأ", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "اختر العيادة", "خطأ", JOptionPane.ERROR_MESSAGE);
             cmbclinic.requestFocus();
             return false;
         } else if (cmbdoctor.getSelectedIndex() == -1) {
-            JOptionPane.showMessageDialog(this, "اختر الجنس", "خطأ", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "اختر الطبيب", "خطأ", JOptionPane.ERROR_MESSAGE);
             cmbdoctor.requestFocus();
+            return false;
+        }
+        if (txtdate.getText().trim().equals("")) {
+            JOptionPane.showMessageDialog(this, "ادخل التاريخ", "خطأ", JOptionPane.ERROR_MESSAGE);
+            txtdate.requestFocus();
+            return false;
+        } else if (!txtdate.getText().matches("^(3[01]|[12][0-9]|0[1-9])/(1[0-2]|0[1-9])/[0-9]{4}$")) {
+            JOptionPane.showMessageDialog(this, "ادخل التاريخ بصيغة صحيحة", "خطأ", JOptionPane.ERROR_MESSAGE);
+            txtdate.requestFocus();
+            return false;
+        } else if (txttime.getText().trim().equals("")) {
+            JOptionPane.showMessageDialog(this, "ادخل الساعة", "خطأ", JOptionPane.ERROR_MESSAGE);
+            txttime.requestFocus();
+            return false;
+        } else if (!txttime.getText().matches("^[0-2]?[0-9]:[0-5]?[0-9]")) {
+            JOptionPane.showMessageDialog(this, "ادخل الوقت بصيغة صحيحة - مثال  04:45", "خطأ", JOptionPane.ERROR_MESSAGE);
+            txttime.requestFocus();
             return false;
         } else {
             return true;
         }
+
     }
 
     public void Save_Data() {
@@ -610,7 +713,7 @@ public class Tickets extends javax.swing.JFrame {
                                     btnSave.setEnabled(true);
                                     btnedite.setEnabled(false);
                                     btndelete.setEnabled(false);
-                                    FillTicketData();
+                                    FillAppointmentsData();
                                 }
 
                             }
@@ -625,12 +728,12 @@ public class Tickets extends javax.swing.JFrame {
                     String sql = "INSERT INTO PATIENTS\n"
                             + " (Patient_NAME,Patient_ID,Patient_BIRTH,Patient_JOb,Patient_NATIO,\n"
                             + " Patient_TYPE,Patient_MRITAL,Patient_MOBI,Patient_ADDRSS,DATE_OPEN,I)\n"
-                            + "VALUES ('" + txtdate.getText() + "','" + txtdate.getText() + "','" + txtdate.getText() + "','" + txtdate.getText() + "','" + NATIONALITYID + "',\n"
-                            + " '" + GENDERID + "','" + MARTIALID + "','" + txtdate.getText() + "','" + txtdate.getText() + "','" + txttime.getText() + "',0)";
+                            + "VALUES ('" + txtdate.getText() + "','" + txtdate.getText() + "','" + txtdate.getText() + "','" + txtdate.getText() + "','" + txtdate.getText() + "',\n"
+                            + " '" + txtdate.getText() + "','" + txtdate.getText() + "','" + txtdate.getText() + "','" + txtdate.getText() + "','" + txttime.getText() + "',0)";
                     int i = Data.Save_Data(sql);
                     if (i == 0) {
                         JOptionPane.showMessageDialog(this, "تم الحفظ بنجاح", "اضافة مريض", JOptionPane.INFORMATION_MESSAGE);
-                        FillTicketData();
+                        FillAppointmentsData();
                         btnSave.setEnabled(false);
                     }
 
@@ -650,7 +753,7 @@ public class Tickets extends javax.swing.JFrame {
             try {
 
                 String sql1 = "Select ID,Patient_NAME ,I from PATIENTS "
-                        + "where ID != '" + PatientID + "' and (Patient_NAME= '" + txtdate.getText() + "' or Patient_NATIO = '" + txtdate.getText() + "' ) ";
+                        + "where ID != '" + AppointmentID + "' and (Patient_NAME= '" + txtdate.getText() + "' or Patient_NATIO = '" + txtdate.getText() + "' ) ";
 
                 ResultSet rs = Data.Get_Data(sql1);
                 if (rs.next()) {
@@ -662,9 +765,9 @@ public class Tickets extends javax.swing.JFrame {
                     int P = JOptionPane.showConfirmDialog(this, "هل تريد تعديل بيانات المريض", "تأكيد", JOptionPane.YES_NO_OPTION);
                     if (P == 0) {
                         String sql = "update  PATIENTS set Patient_NAME='" + txtdate.getText() + "',Patient_ID='" + txtdate.getText() + "',Patient_BIRTH='" + txtdate.getText() + "'\n"
-                                + " ,Patient_JOb='" + txtdate.getText() + "',Patient_NATIO='" + NATIONALITYID + "',Patient_TYPE='" + GENDERID + "'\n"
-                                + " ,Patient_MRITAL='" + MARTIALID + "',Patient_MOBI='" + txtdate.getText() + "',Patient_ADDRSS='" + txtdate.getText() + "'"
-                                + ",DATE_OPEN='" + txttime.getText() + "'  where ID='" + PatientID + "'";
+                                + " ,Patient_JOb='" + txtdate.getText() + "',Patient_NATIO='" + txtdate.getText() + "',Patient_TYPE='" + txtdate.getText() + "'\n"
+                                + " ,Patient_MRITAL='" + txtdate.getText() + "',Patient_MOBI='" + txtdate.getText() + "',Patient_ADDRSS='" + txtdate.getText() + "'"
+                                + ",DATE_OPEN='" + txttime.getText() + "'  where ID='" + AppointmentID + "'";
                         int i = Data.Save_Data(sql);
                         if (i == 0) {
                             JOptionPane.showMessageDialog(this, "تم التعديل بنجاح", "تعديل مريض", JOptionPane.INFORMATION_MESSAGE);
@@ -688,7 +791,7 @@ public class Tickets extends javax.swing.JFrame {
                 Connection con = DatabaseConnection.con();
                 PreparedStatement pst = null;
 
-                String sql = "update PATIENTS set I='" + 1 + "' where ID='" + PatientID + "'";
+                String sql = "update PATIENTS set I='" + 1 + "' where ID='" + AppointmentID + "'";
 
                 pst = con.prepareStatement(sql);
                 pst.execute();
@@ -696,7 +799,7 @@ public class Tickets extends javax.swing.JFrame {
                 btnSave.setEnabled(true);
                 btnedite.setEnabled(false);
                 btndelete.setEnabled(false);
-                FillTicketData();
+                FillAppointmentsData();
             }
 
         } catch (HeadlessException | SQLException ex) {
@@ -715,11 +818,14 @@ public class Tickets extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> cmbdoctorid;
     private javax.swing.JComboBox<String> cmbpatient;
     private javax.swing.JComboBox<String> cmbpatientid;
+    private javax.swing.JFormattedTextField jFormattedTextField1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane1;
