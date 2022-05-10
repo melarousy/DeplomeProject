@@ -14,15 +14,17 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.text.MaskFormatter;
 import net.proteanit.sql.DbUtils;
 
 /**
@@ -30,10 +32,11 @@ import net.proteanit.sql.DbUtils;
  * @author m.amin
  */
 public class Appointments extends javax.swing.JFrame {
+        String pattern = "dd/MM/yyyy";
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
 
-private static final SimpleDateFormat sdfdate = new SimpleDateFormat("dd/MM/yyyy");
-private static final SimpleDateFormat sdftime = new SimpleDateFormat("HH:mm");
-Date date = new Date();
+    private static final SimpleDateFormat sdftime = new SimpleDateFormat("HH:mm");
+    Date date = new Date();
     int PatientID = 0;
     int clinicID = 0;
     int doctorID = 0;
@@ -63,15 +66,17 @@ Date date = new Date();
         this.setLocationRelativeTo(null);
         Image icon = Toolkit.getDefaultToolkit().getImage(".\\src\\images\\icon.gif");
         this.setIconImage(icon);
-        ((JLabel) cmbdoctor.getRenderer()).setHorizontalAlignment(JLabel.RIGHT);
+        ((JLabel) cmbpatient.getRenderer()).setHorizontalAlignment(JLabel.RIGHT);
         ((JLabel) cmbclinic.getRenderer()).setHorizontalAlignment(JLabel.RIGHT);
+        ((JLabel) cmbdoctor.getRenderer()).setHorizontalAlignment(JLabel.RIGHT);
+        
         this.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         this.jLabel3.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         this.jLabel4.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         this.jLabel5.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         this.jLabel8.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         this.jLabel9.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-        this.txtdate.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+        this.jDateChooser1.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         this.txttime.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         this.jTable1.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         this.txtsearch.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
@@ -81,8 +86,15 @@ Date date = new Date();
         fillcliniccombobox();
         btnedite.setEnabled(false);
         btndelete.setEnabled(false);
+        cmbpatient.setSelectedIndex(-1);
         cmbclinic.setSelectedIndex(-1);
-        this.txtdate.setText(sdfdate.format(date));
+        cmbdoctor.setSelectedIndex(-1);
+        
+         this.cmbpatientid.show(false);
+          this.cmbclinicid.show(false);
+           this.cmbdoctorid.show(false);
+        
+        this.jDateChooser1.setDate(date);
         this.txttime.setText(sdftime.format(date));
 
     }
@@ -106,7 +118,6 @@ Date date = new Date();
         cmbdoctor = new javax.swing.JComboBox<>();
         cmbclinic = new javax.swing.JComboBox<>();
         txttime = new javax.swing.JTextField();
-        txtdate = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
@@ -126,10 +137,9 @@ Date date = new Date();
         cmbclinicid = new javax.swing.JComboBox<>();
         cmbdoctorid = new javax.swing.JComboBox<>();
         jLabel7 = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
-        jFormattedTextField1 = new javax.swing.JFormattedTextField();
+        jDateChooser1 = new com.toedter.calendar.JDateChooser();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosed(java.awt.event.WindowEvent evt) {
@@ -160,10 +170,6 @@ Date date = new Date();
         txttime.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         txttime.setForeground(new java.awt.Color(51, 51, 255));
         txttime.setPreferredSize(new java.awt.Dimension(175, 30));
-
-        txtdate.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
-        txtdate.setForeground(new java.awt.Color(51, 51, 255));
-        txtdate.setPreferredSize(new java.awt.Dimension(175, 30));
 
         jLabel3.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
         jLabel3.setForeground(new java.awt.Color(51, 51, 255));
@@ -286,11 +292,9 @@ Date date = new Date();
         jLabel7.setForeground(new java.awt.Color(255, 0, 51));
         jLabel7.setText("hh:mm");
 
-        jLabel10.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
-        jLabel10.setForeground(new java.awt.Color(255, 0, 51));
-        jLabel10.setText("yyyy/mm/dd");
-
-        jFormattedTextField1.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.DateFormatter(new java.text.SimpleDateFormat("h:mm"))));
+        jDateChooser1.setForeground(new java.awt.Color(51, 51, 255));
+        jDateChooser1.setDateFormatString("dd/MM/yyyy");
+        jDateChooser1.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -298,68 +302,70 @@ Date date = new Date();
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(183, 183, 183)
+                        .addComponent(cmbclinicid, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel3)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(cmbpatientid, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(136, 136, 136)
+                                .addComponent(txttime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(18, 18, 18)
+                        .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(15, 15, 15))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(28, 28, 28)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel7)
+                                        .addGap(96, 96, 96))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(cmbdoctor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(cmbclinic, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(155, 155, 155)
+                                        .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGap(18, 18, 18))
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addGap(60, 60, 60)
+                                .addComponent(cmbdoctorid, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(cmbpatient, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(11, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btndelete)
+                        .addGap(27, 27, 27))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(28, 28, 28)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(btndelete)
-                                        .addGap(27, 27, 27)
-                                        .addComponent(btnSave)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(btnedite)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(btnnew)
-                                        .addGap(59, 59, 59))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                            .addComponent(txtsearch, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(cmbclinicid, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addGap(18, 18, 18)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addGroup(layout.createSequentialGroup()
-                                                .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(225, 225, 225)
-                                                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                            .addComponent(cmbpatientid, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                                .addGap(15, 15, 15))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                            .addGroup(layout.createSequentialGroup()
-                                                .addComponent(jLabel7)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(jLabel3))
-                                            .addGroup(layout.createSequentialGroup()
-                                                .addComponent(cmbdoctor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(18, 18, 18)
-                                                .addComponent(cmbclinic, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                            .addGroup(layout.createSequentialGroup()
-                                                .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addGap(155, 155, 155)
-                                                .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                        .addGap(18, 18, 18))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGap(60, 60, 60)
-                                        .addComponent(cmbdoctorid, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(txttime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)))
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(txtdate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(cmbpatient, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel10)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 775, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(txtsearch, javax.swing.GroupLayout.PREFERRED_SIZE, 202, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(77, 77, 77)
-                        .addComponent(jFormattedTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(26, Short.MAX_VALUE))
+                        .addComponent(btnSave)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnedite)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnnew)))
+                .addGap(43, 43, 43))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(28, 28, 28)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 775, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -374,36 +380,34 @@ Date date = new Date();
                     .addComponent(cmbclinic, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(cmbdoctor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(cmbpatient, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel7)
-                    .addComponent(jLabel10))
+                    .addComponent(jLabel7))
                 .addGap(2, 2, 2)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtdate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txttime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cmbpatientid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cmbclinicid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cmbdoctorid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(40, 40, 40)
-                .addComponent(jFormattedTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(2, 2, 2)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(txttime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(cmbpatientid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(cmbclinicid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(cmbdoctorid, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(30, 30, 30)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btndelete, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnedite, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnnew, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel6)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(txtsearch, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(jLabel14)))
-                .addGap(28, 28, 28)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(35, Short.MAX_VALUE))
+                .addContainerGap(74, Short.MAX_VALUE))
         );
 
         pack();
@@ -412,11 +416,20 @@ Date date = new Date();
     private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
         // TODO add your handling code here:
         int row = jTable1.getSelectedRow();
+        
         AppointmentID = Integer.parseInt(jTable1.getModel().getValueAt(row, 0).toString());
-        this.cmbpatient.setSelectedIndex(Integer.parseInt(jTable1.getModel().getValueAt(row, 1).toString()) - 1);
-        this.cmbclinic.setSelectedIndex(Integer.parseInt(jTable1.getModel().getValueAt(row, 3).toString()) - 1);
-        this.cmbdoctor.setSelectedIndex(Integer.parseInt(jTable1.getModel().getValueAt(row, 8).toString()) - 1);
-        this.txtdate.setText(jTable1.getModel().getValueAt(row, 6).toString());
+        cmbpatientid.setSelectedItem(jTable1.getModel().getValueAt(row, 1).toString());
+        cmbclinicid.setSelectedItem(jTable1.getModel().getValueAt(row, 3).toString());
+        cmbdoctorid.setSelectedItem(jTable1.getModel().getValueAt(row, 8).toString());
+
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
+        String dateInString = jTable1.getModel().getValueAt(row, 6).toString();
+        try {
+            Date date1 = formatter.parse(dateInString);
+            this.jDateChooser1.setDate(date1);
+        } catch (ParseException ex) {
+            Logger.getLogger(Appointments.class.getName()).log(Level.SEVERE, null, ex);
+        }
         this.txttime.setText(jTable1.getModel().getValueAt(row, 7).toString());
 
         btnSave.setEnabled(false);
@@ -432,7 +445,7 @@ Date date = new Date();
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
         // TODO add your handling code here:
         Save_Data();
-        reset();
+        //reset();
     }//GEN-LAST:event_btnSaveActionPerformed
 
     private void cmbclinicActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbclinicActionPerformed
@@ -474,20 +487,15 @@ Date date = new Date();
     private void txtsearchKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtsearchKeyTyped
         // TODO add your handling code here:
 
-        String Query2 = "SELECT Appointments.id as [رقم الحجز], Appointments.pati_id, PATIENTS.Patient_NAME as [المريض],\n"
-                + "Appointments.clinc_id,EMPLOYEES.EMP_NAME as [الطبيب], Appointments.CLINIC_NAME as [العيادة],\n"
-                + "Appointments.ap_date as [التاريخ],Appointments.ap_time as [الساعة],doctor_id  FROM Appointments\n"
-                + "INNER JOIN PATIENTS ON Appointments.pati_id = PATIENTS.ID \n"
-                + "INNER JOIN CLINIC ON Appointments.clinc_id = CLINIC.ID\n"
-                + "INNER JOIN EMPLOYEES ON Appointments.doctor_id = EMPLOYEES.ID \n"
-                + "where PATIENTS.Patient_NAME like '" + this.txtsearch.getText() + "' + '%' and Appointments.i=0 and PATIENTS.i=0 and CLINIC.i=0 and EMPLOYEES.i=0";
+        String Query2 = Query + " and  PATIENTS.Patient_NAME like '" + this.txtsearch.getText() + "' + '%' ";
 
         SearchByName(Query2);
     }//GEN-LAST:event_txtsearchKeyTyped
 
     private void cmbpatientActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbpatientActionPerformed
         // TODO add your handling code here:
-        PatientID = cmbpatient.getSelectedIndex() + 1;
+        PatientID = Integer.parseInt(cmbpatientid.getSelectedItem().toString()) ;
+        
         int index = cmbpatient.getSelectedIndex();
         if (index != -1) {
             cmbpatientid.setSelectedIndex(index);
@@ -562,14 +570,14 @@ Date date = new Date();
     }
 
     private void reset() {
-
-        this.txtdate.setText("");
+        this.cmbdoctor.setSelectedIndex(-1);
+        this.cmbclinic.setSelectedIndex(-1);
+        this.cmbpatient.setSelectedIndex(-1);
+        this.jDateChooser1.setDate(date);
         this.txttime.setText("");
         btnSave.setEnabled(true);
         btnedite.setEnabled(false);
         btndelete.setEnabled(false);
-        this.cmbdoctor.setSelectedIndex(-1);
-        this.cmbclinic.setSelectedIndex(-1);
         FillAppointmentsData();
     }
 
@@ -581,9 +589,9 @@ Date date = new Date();
             jTable1.getColumnModel().getColumn(i).setCellRenderer(rightRenderer);
         }
         ((DefaultTableCellRenderer) jTable1.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.RIGHT);
-//        jTable1.removeColumn(jTable1.getColumnModel().getColumn(1));
-//        jTable1.removeColumn(jTable1.getColumnModel().getColumn(2));
-//        jTable1.removeColumn(jTable1.getColumnModel().getColumn(6));
+        jTable1.removeColumn(jTable1.getColumnModel().getColumn(1));
+        jTable1.removeColumn(jTable1.getColumnModel().getColumn(2));
+        jTable1.removeColumn(jTable1.getColumnModel().getColumn(6));
 
     }
 
@@ -666,13 +674,9 @@ Date date = new Date();
             cmbdoctor.requestFocus();
             return false;
         }
-        if (txtdate.getText().trim().equals("")) {
+        if (this.jDateChooser1.getDate().equals("")) {
             JOptionPane.showMessageDialog(this, "ادخل التاريخ", "خطأ", JOptionPane.ERROR_MESSAGE);
-            txtdate.requestFocus();
-            return false;
-        } else if (!txtdate.getText().matches("^(3[01]|[12][0-9]|0[1-9])/(1[0-2]|0[1-9])/[0-9]{4}$")) {
-            JOptionPane.showMessageDialog(this, "ادخل التاريخ بصيغة صحيحة", "خطأ", JOptionPane.ERROR_MESSAGE);
-            txtdate.requestFocus();
+            jDateChooser1.requestFocus();
             return false;
         } else if (txttime.getText().trim().equals("")) {
             JOptionPane.showMessageDialog(this, "ادخل الساعة", "خطأ", JOptionPane.ERROR_MESSAGE);
@@ -690,26 +694,31 @@ Date date = new Date();
 
     public void Save_Data() {
 
+
         if (checkinput()) {
 
             try {
-                String sql1 = "Select ID,Patient_NAME ,I from PATIENTS "
-                        + "where Patient_NAME= '" + txtdate.getText() + "' or Patient_ID = '" + txtdate.getText() + "'";
+                System.out.println(cmbpatientid.getSelectedItem().toString());
+                String sql1 = "Select ID,pati_id ,clinc_id,doctor_id,ap_date,ap_time,I from Appointments "
+                        + "where pati_id = '"+cmbpatientid.getSelectedItem().toString()+"' "
+                        + "and clinc_id = '"+this.cmbclinicid.getSelectedItem().toString()+"' "
+                        + "and doctor_id = '"+this.cmbdoctorid.getSelectedItem().toString()+"'"
+                        + " and ap_date = '"+this.jDateChooser1.getDate()+"' and ap_time = '"+this.txttime.getText()+"'";                          
 
                 ResultSet rs = Data.Get_Data(sql1);
 
                 if (rs.next()) {
                     if (rs.getInt("I") == 0) {
-                        JOptionPane.showMessageDialog(this, "يوجد مريض بنفس البيانات", "خطأ", JOptionPane.ERROR_MESSAGE);
-                        txtdate.requestFocus();
+                        JOptionPane.showMessageDialog(this, "يوجد موعد بنفس البيانات", "خطأ", JOptionPane.ERROR_MESSAGE);
+                        txttime.requestFocus();
                     } else {
                         try {
-                            int P = JOptionPane.showConfirmDialog(this, "المريض محذوف هل تريد استعادته", "تأكيد", JOptionPane.YES_NO_OPTION);
+                            int P = JOptionPane.showConfirmDialog(this, "الموعد محذوف هل تريد استعادته", "تأكيد", JOptionPane.YES_NO_OPTION);
                             if (P == 0) {
-                                String sql = "update PATIENTS set I='" + 0 + "' where ID='" + rs.getInt("ID") + "'";
+                                String sql = "update Appointments set I='" + 0 + "' where ID='" + rs.getInt("ID") + "'";
                                 int i = Data.Save_Data(sql);
                                 if (i == 0) {
-                                    JOptionPane.showMessageDialog(this, "تم استعادة المريض", "استعادة مريض", JOptionPane.INFORMATION_MESSAGE);
+                                    JOptionPane.showMessageDialog(this, "تم استعادة الموعد", "استعادة موعد", JOptionPane.INFORMATION_MESSAGE);
                                     btnSave.setEnabled(true);
                                     btnedite.setEnabled(false);
                                     btndelete.setEnabled(false);
@@ -725,16 +734,16 @@ Date date = new Date();
                     }
 
                 } else {
-                    String sql = "INSERT INTO PATIENTS\n"
-                            + " (Patient_NAME,Patient_ID,Patient_BIRTH,Patient_JOb,Patient_NATIO,\n"
-                            + " Patient_TYPE,Patient_MRITAL,Patient_MOBI,Patient_ADDRSS,DATE_OPEN,I)\n"
-                            + "VALUES ('" + txtdate.getText() + "','" + txtdate.getText() + "','" + txtdate.getText() + "','" + txtdate.getText() + "','" + txtdate.getText() + "',\n"
-                            + " '" + txtdate.getText() + "','" + txtdate.getText() + "','" + txtdate.getText() + "','" + txtdate.getText() + "','" + txttime.getText() + "',0)";
+                    String sql = "INSERT INTO Appointments\n"
+                            + " (pati_id,clinc_id,doctor_id,ap_date,ap_time,I)\n"
+                            + "VALUES ('" + cmbpatientid.getSelectedItem() + "','" + cmbclinicid.getSelectedItem() + "',\n"
+                            + " '" + cmbdoctorid.getSelectedItem() + "','" + simpleDateFormat.format(jDateChooser1.getDate()) + "','" + txttime.getText() + "',0)";
                     int i = Data.Save_Data(sql);
                     if (i == 0) {
-                        JOptionPane.showMessageDialog(this, "تم الحفظ بنجاح", "اضافة مريض", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(this, "تم الحفظ بنجاح", "اضافة موعد", JOptionPane.INFORMATION_MESSAGE);
                         FillAppointmentsData();
                         btnSave.setEnabled(false);
+                        reset();
                     }
 
                 }
@@ -752,25 +761,30 @@ Date date = new Date();
         if (checkinput()) {
             try {
 
-                String sql1 = "Select ID,Patient_NAME ,I from PATIENTS "
-                        + "where ID != '" + AppointmentID + "' and (Patient_NAME= '" + txtdate.getText() + "' or Patient_NATIO = '" + txtdate.getText() + "' ) ";
+                String sql1 = "Select ID,pati_id ,clinc_id,doctor_id,ap_date,ap_time,I from Appointments "
+                        + "where pati_id = '"+cmbpatientid.getSelectedItem().toString()+"' "
+                        + "and clinc_id = '"+this.cmbclinicid.getSelectedItem().toString()+"' "
+                        + "and doctor_id = '"+this.cmbdoctorid.getSelectedItem().toString()+"'"
+                        + " and ap_date = '"+this.jDateChooser1.getDate()+"' and ap_time = '"+this.txttime.getText()+"'"; 
 
                 ResultSet rs = Data.Get_Data(sql1);
                 if (rs.next()) {
-                    JOptionPane.showMessageDialog(this, "يوجد مريض بنفس البيانات", "خطأ", JOptionPane.ERROR_MESSAGE);
-                    txtdate.requestFocus();
+                    JOptionPane.showMessageDialog(this, "يوجد موعد بنفس البيانات", "خطأ", JOptionPane.ERROR_MESSAGE);
+                    txttime.requestFocus();
 
                 } else {
 
-                    int P = JOptionPane.showConfirmDialog(this, "هل تريد تعديل بيانات المريض", "تأكيد", JOptionPane.YES_NO_OPTION);
+                    int P = JOptionPane.showConfirmDialog(this, "هل تريد تعديل بيانات الموعد", "تأكيد", JOptionPane.YES_NO_OPTION);
                     if (P == 0) {
-                        String sql = "update  PATIENTS set Patient_NAME='" + txtdate.getText() + "',Patient_ID='" + txtdate.getText() + "',Patient_BIRTH='" + txtdate.getText() + "'\n"
-                                + " ,Patient_JOb='" + txtdate.getText() + "',Patient_NATIO='" + txtdate.getText() + "',Patient_TYPE='" + txtdate.getText() + "'\n"
-                                + " ,Patient_MRITAL='" + txtdate.getText() + "',Patient_MOBI='" + txtdate.getText() + "',Patient_ADDRSS='" + txtdate.getText() + "'"
-                                + ",DATE_OPEN='" + txttime.getText() + "'  where ID='" + AppointmentID + "'";
+                        String sql = "update  Appointments set pati_id='" + cmbpatientid.getSelectedItem() + "',"
+                                + "clinc_id='" + cmbclinicid.getSelectedItem() + "',doctor_id='" + cmbdoctorid.getSelectedItem() + "'\n"
+                                + " ,ap_date='" + simpleDateFormat.format(jDateChooser1.getDate()) + "',ap_time='" + txttime.getText() + "'\n"
+                                + "where ID='" + AppointmentID + "'";
+                        
+                        
                         int i = Data.Save_Data(sql);
                         if (i == 0) {
-                            JOptionPane.showMessageDialog(this, "تم التعديل بنجاح", "تعديل مريض", JOptionPane.INFORMATION_MESSAGE);
+                            JOptionPane.showMessageDialog(this, "تم التعديل بنجاح", "تعديل موعد", JOptionPane.INFORMATION_MESSAGE);
                             reset();
                         }
                     }
@@ -786,16 +800,16 @@ Date date = new Date();
 
     public void Delete_Data() {
         try {
-            int P = JOptionPane.showConfirmDialog(this, "سيتم حذف المريض ولن تتمكن من استعادته", "تأكيد", JOptionPane.YES_NO_OPTION);
+            int P = JOptionPane.showConfirmDialog(this, "سيتم حذف الموعد ولن تتمكن من استعادته", "تأكيد", JOptionPane.YES_NO_OPTION);
             if (P == 0) {
                 Connection con = DatabaseConnection.con();
                 PreparedStatement pst = null;
 
-                String sql = "update PATIENTS set I='" + 1 + "' where ID='" + AppointmentID + "'";
+                String sql = "update Appointments set I='" + 1 + "' where ID='" + AppointmentID + "'";
 
                 pst = con.prepareStatement(sql);
                 pst.execute();
-                JOptionPane.showMessageDialog(this, "تم الحذف بنجاح", "حذف مريض", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "تم الحذف بنجاح", "حذف موعد", JOptionPane.INFORMATION_MESSAGE);
                 btnSave.setEnabled(true);
                 btnedite.setEnabled(false);
                 btndelete.setEnabled(false);
@@ -818,8 +832,7 @@ Date date = new Date();
     private javax.swing.JComboBox<String> cmbdoctorid;
     private javax.swing.JComboBox<String> cmbpatient;
     private javax.swing.JComboBox<String> cmbpatientid;
-    private javax.swing.JFormattedTextField jFormattedTextField1;
-    private javax.swing.JLabel jLabel10;
+    private com.toedter.calendar.JDateChooser jDateChooser1;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -830,7 +843,6 @@ Date date = new Date();
     private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTextField txtdate;
     private javax.swing.JTextField txtsearch;
     private javax.swing.JTextField txttime;
     // End of variables declaration//GEN-END:variables
